@@ -1,11 +1,14 @@
 
 #!/bin/bash
 
+
+###############################################
+# Variables 
+###############################################
+
 source_dir="/var/services/homes/dev/backup/temp/photos"
 file_prefix="2008_12_大学照片_KevinYu.tar"
 destination_dir="${source_dir}" # don't include decompresed folder.
-
-
 
 time="$(date +"%Y-%m-%d")"
 
@@ -13,7 +16,7 @@ time="$(date +"%Y-%m-%d")"
 # Functions
 ###############################################
 
-initialize() {
+function initialize() {
     if [ ! -d "${source_dir}" ]; then
         echo "==> source folder is not existed, exit"
         exit 1
@@ -25,12 +28,12 @@ initialize() {
     fi
 } 
 
-decompressCore() {
+function decompressCore() {
     cat ${source_dir}/${file_prefix}.* | openssl des3 -d -k Damaoxian7954 -salt | tar -xf - -C "${destination_dir}"
 }
 
 
-decompress() {
+function decompress() {
     decompressCore
 }
 
