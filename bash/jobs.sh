@@ -1,124 +1,56 @@
 #!/bin/bash
 
+. ./tasks.sh
+
+###############################################
+# Variables
+###############################################
+
+
 ###############################################
 # Functions
 ###############################################
 
+function job_backup() {
+    destination_dir=$1
+    source_dir=$2
 
-###############################################
-# Functions
-###############################################
-
-function usage() {
-    echo "if this was a real script you would see something useful here"
-    echo
-    echo "./simple_args_parsing.sh"
-    echo "-h --help"
-    echo "--environment=$ENVIRONMENT"
-    echo "--db-path=$DB_PATH"
-    echo 
-
-    echo "-z, --time-cond TIME  Transfer based on a time condition"
-    echo "-l, --tlsv1       Use >= TLSv1 (SSL)"
-    echo "    --tlsv1.0     Use TLSv1.0 (SSL)"
-}
-
-
-function parse_arguments() {
-    POSITIONAL=()
-
-    if [[ $# -eq 0 ]]; then
-        echo "You must specify one of the '--compress' or '--decompress' options "
-        echo "Try 'run --help or run -h' for more information."
-        exit 0
+    task_check_dir ${source_dir}
+    if [[ $1 -lt 0 ]]; then 
+        return -1
     fi
 
-    while [[ $# -gt 0 ]]; do
-        key="$1"
+    task_check_dir_and_create ${destination_dir}
 
-        case ${key} in
-            -h|--help)
-                usage
-                exit 0
-                ;;
-            -c|--compress)
-                type="compress"
-                shift
-                ;;
-            -x|--decompress)
-                type="decompress"
-                shift
-                ;;
-            -d|--destination)
-                destination="$2"
-                shift
-                shift
-                ;;
-            -s|--source)
-                source="$2"
-                shift
-                shift
-                ;;
-            *)
-                POSITIONAL+=("$1")
-                shift
-        esac
+    for sub_folder in `ls "${source_dir}"`
+    do
+        if [[ ${sub_folder} != "@eaDir" ]]; then
+            task_compress "${destination_dir}" "${source_dir}/${sub_folder}"
+            if [[ $1 -lt 0 ]]; then
+                echo "${source_dir}/${sub_folder} failed to compress..."
+                break
+            fi
+
+            # 验证，只有满足验证条件的压缩包能进入下一个环节
+            task_verify_compressed_volumes
+
+            # 移除不再需要的压缩卷
+            task_remove_compressed_volumes
+
+            #将指定文件的所有压缩卷拷贝到baiduyun同步文件夹中
+            task_move_compressed_volumes
+        fi
     done
-
-    set -- "${POSITIONAL[@]}"
-    if [[ $# -gt 0 ]]; then
-        echo "Includes unknown arguments: $*"
-    fi
 }
 
-function validate_and_run() {
-    if [[ -z ${type} ]]; then
-        echo "invalid type, exit -1"
-        exit -1
-    fi
-
-    case ${type} in
-        compress)
-            if [[ -z ${destination} ]]; then
-                echo "--destination is missing, exit -1"
-                exit -1
-            fi
-
-            if [[ -z ${source} ]]; then
-                echo "--source is missing, exit -1"
-                exit -1
-            fi
-
-            compress
-            ;;
-        decompress)
-            if [[ -z ${destination} ]]; then
-                echo "--destination is missing, exit -1"
-                exit -1
-            fi
-
-            if [[ -z ${source} ]]; then
-                echo "--source is missing, exit -1"
-                exit -1
-            fi
-
-            decompress
-            ;;
-        *)
-            echo "type is missing, exit -1"
-    esac
-}
-
-function compress() {
-    source ./compression.sh "${destination}" "${source}"
-}
-
-function decompress() {
-    source ./decompression.sh "${destination}" "${source}"
+function job_recover() {
+    echo
 }
 
 ###############################################
 # Main Process
 ###############################################
-parse_arguments "$@"
-validate_and_run
+
+# parse_arguments "$@"
+
+# validate_and_run

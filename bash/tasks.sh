@@ -34,46 +34,42 @@ function task_check_dir() {
 
 
 function task_compress() {
-    # var1=$1
-    # tar -zcPf - -C "${source_dir}" "${var1}" | openssl des3 -salt -k Damaoxian7954 | split -b 4000m -d -a 1 - "${destination_dir}/${var1}.tar.gz"
-    
-    destination_dir=$1
-    source_dir=$2
-    package_name=${source_dir##*/}
-    parent_source_dir=${source_dir%/*}
-    tar -zcPf - -C "${parent_source_dir}" "${package_name}" | openssl des3 -salt -k ${password} | split -b 4000m -d -a 1 - "${destination_dir}/${package_name}.tar.gz."
+    { 
+        destination_dir=$1
+        source_dir=$2
+        package_name=${source_dir##*/}
+        parent_source_dir=${source_dir%/*}
+        tar -zcPf - -C "${parent_source_dir}" "${package_name}" | openssl des3 -salt -k ${password} | split -b 4000m -d -a 1 - "${destination_dir}/${package_name}.tar.gz."
+    } || {
+        return -1
+    }
+
     return 0
 }
 
 function task_decompress() {
-    destination_dir=$1
-    source_dir=$2
-    file_prefix=$3
-    cat ${source_dir}/${file_prefix}.* | openssl des3 -d -k ${password} -salt | tar -zxf - -C "${destination_dir}"
+    {
+        destination_dir=$1
+        source_dir=$2
+        file_prefix=$3
+        cat ${source_dir}/${file_prefix}.* | openssl des3 -d -k ${password} -salt | tar -zxf - -C "${destination_dir}"
+    } || {
+        return -1
+    }
+
+    return 0
 }
 
-function initialize_() {
-    if [ ! -d "${source_dir}" ]; then
-        echo "==> source folder is not existed, exit"
-        exit 1
-    fi
+function task_verify_compressed_volumes() {
+    echo
+}
 
-    if [ ! -d "${destination_dir}" ]; then
-        echo "==> Create destination folder ${destination_dir}"
-        mkdir -p ${destination_dir}
-    fi
-} 
+function task_remove_compressed_volumes() {
+    echo
+}
 
-function compress_() {
-    for sub_folder in `ls "${source_dir}"`
-    do
-        if [[ -d "${source_dir}/${sub_folder}" && ${sub_folder} != "@eaDir" ]]; then
-            if [ ${sub_folder} == "2008_12_大学照片_KevinYu" ]; then
-                echo "compress"
-                compress_core "${sub_folder}"
-            fi
-        fi
-    done
+function task_move_compressed_volumes() {
+    echo
 }
 
 ###############################################
