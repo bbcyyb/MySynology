@@ -12,22 +12,26 @@
 ###############################################
 
 function job_backup() {
-    destination_dir=$1
-    source_dir=$2
+    job_destination_dir=$1
+    job_source_dir=$2
 
-    task_check_dir ${source_dir}
-    if [[ $1 -lt 0 ]]; then 
+    if [[ ! -d "${job_source_dir}" ]]; then 
+        echo "==> source folder ${job_source_dir} is not exist, exit..."
         return -1
     fi
 
-    task_check_dir_and_create ${destination_dir}
+    if [[ ! -d "${job_destination_dir}" ]]; then 
+        echo "==> backup folder  ${job_destination_dir} is not exist, create it!"
+        mkdir -p ${job_destination_dir}
+    fi
 
-    for sub_folder in `ls "${source_dir}"`
+    for job_sub_folder in `ls "${job_source_dir}"`
     do
-        if [[ ${sub_folder} != "@eaDir" ]]; then
-            task_compress "${destination_dir}" "${source_dir}/${sub_folder}"
-            if [[ $1 -lt 0 ]]; then
-                echo "${source_dir}/${sub_folder} failed to compress..."
+        if [[ ${job_sub_folder} != "@eaDir" ]]; then
+            echo "compress ${job_sub_folder}......"
+            task_compress "${job_destination_dir}" "${job_source_dir}/${job_sub_folder}"
+            if [[ $? -ne 0 ]]; then
+                echo "${job_source_dir}/${job_sub_folder} failed to compress..."
                 break
             fi
 
@@ -44,7 +48,28 @@ function job_backup() {
 }
 
 function job_recover() {
-    echo
+    job_destination_dir=$1
+    job_source_dir=$2
+    job_file_prefix=$3
+
+    if [[ ! -d "${job_source_dir}" ]]; then
+        echo "==> source folder ${job_source_dir} is not exist, exit..."
+        exit -1
+    fi
+
+    ls ${job_source_dir}/${job_file_prefix}*
+    if [[ $? -ne 0 ]]; then
+        echo "==> file begin with ${job_file_prefix} is not existed, exit..."
+        exit -1
+    fi
+
+    if [[ ! -d "${job_destination_dir}" ]]; then
+        echo "==> destination folder  ${job_destination_dir} is not exist, create it!"
+        mkdir -p ${job_destination_dir}
+    fi
+
+    echo "decomress ${job_file_prefix}"
+    task_decompress "${job_destination_dir}" "${job_source_dir}" "${job_file_prefix}"
 }
 
 ###############################################

@@ -30,7 +30,7 @@ function parse_arguments() {
     POSITIONAL=()
 
     if [[ $# -eq 0 ]]; then
-        echo "You must specify one of the '--compress' or '--decompress' options "
+        echo "You must specify one of the '--backup' or '--recovery' options "
         echo "Try 'run --help or run -h' for more information."
         exit 0
     fi
@@ -44,11 +44,11 @@ function parse_arguments() {
                 exit 0
                 ;;
             -b|--backup)
-                type="backup"
+                kind="backup"
                 shift
                 ;;
-            -x|--decompress)
-                type="recovery"
+            -r|--recovery)
+                kind="recovery"
                 shift
                 ;;
             -d|--destination)
@@ -58,6 +58,11 @@ function parse_arguments() {
                 ;;
             -s|--source)
                 source="$2"
+                shift
+                shift
+                ;;
+            --file_prefix)
+                file_prefix="$2"
                 shift
                 shift
                 ;;
@@ -74,12 +79,13 @@ function parse_arguments() {
 }
 
 function validate_and_run() {
-    if [[ -z ${type} ]]; then
-        echo "invalid type, exit -1"
+    echo "It's type ${kind}"
+    if [[ -z ${kind} ]]; then
+        echo "unknown kind, exit -1"
         exit -1
     fi
 
-    case ${type} in
+    case ${kind} in
         backup)
             if [[ -z ${destination} ]]; then
                 echo "--destination is missing, exit -1"
@@ -91,7 +97,7 @@ function validate_and_run() {
                 exit -1
             fi
 
-            compress
+            job_backup ${destination} ${source} 
             ;;
         recovery)
             if [[ -z ${destination} ]]; then
@@ -104,9 +110,22 @@ function validate_and_run() {
                 exit -1
             fi
 
-            decompress
+            if [[ -z ${file_prefix} ]]; then
+                echo "--file prefix is missing, exit -1"
+                exit -1
+            fi
+
+            job_recover ${destination} ${source} ${file_prefix}
             ;;
         *)
             echo "type is missing, exit -1"
     esac
 }
+
+function start() {
+    parse_arguments "$@"
+    validate_and_run
+}
+
+
+start "$@"
