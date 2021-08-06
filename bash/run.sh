@@ -128,4 +128,26 @@ function start() {
 }
 
 
-start "$@"
+# start "$@"
+
+function test() {
+
+    list=()
+
+    path=/home/yuk4/work/sourcecode/github/bbcyyb/MySynology/test/b_side/temp
+
+    for sub in `ls ${path}`
+    do
+        list=("${list[@]}" "${sub%.*}")
+    done
+
+    for l in ${list[@]}
+    do
+        for ll in `ls "$path/$l"*`
+        do
+            echo $ll
+        done
+    done
+}
+
+test

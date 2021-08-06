@@ -41,7 +41,50 @@ function task_decompress() {
 }
 
 function task_verify_compressed_volumes() {
-    echo
+    {
+        task_destination_dir=$1
+        task_source_dir=$2
+        # task_file_prefix=$3
+        task_file_prefix_list=()
+         
+        for task_file in `ls "${task_source_dir}"`
+        do
+            task_file_prefix_list=("${task_file_prefix_list[@]}" "${task_file%.*}")
+        done
+
+        for task_file_prefix in ${task_file_prefix_list[@]}
+        do
+            need_copy=0
+            for task_filtered_file in `ls "${task_source_dir}/${task_filtered_file}"*`
+            do
+                if [[ ! -f "${task_destination_dir}/${task_filtered_file}" ]]; then
+                    need_copy=1
+                    break
+                fi
+
+                task_source_file_size=`ls -l "${task_source_dir}/${task_filtered_file}" | awk '{print $5}'`
+                task_destination_file_size=`ls -l "${task_destination_dir}/${task_filtered_file}" | awk '{print $5}'`
+                if [[ ${task_source_file_size} -ne ${task_destination_file_size}  ]]; then
+                    need_copy=1
+                    break
+                fi
+                
+            done
+
+            if [[ ${need_copy} -eq 1 ]]; then
+                # delete existed files from dest
+                rm -rf "${task_destination_dir}/${task_filtered_file}"*
+                # move file to dest folder
+                mv "${task_source_dir}/${task_filtered_file}"* "${task_destination_dir}/"
+            else
+                rm -rf "${task_source_dir}/${task_filtered_file}"*
+            fi
+        done
+    } || {
+        return 1
+    }
+
+    return 0
 }
 
 function task_remove_compressed_volumes() {
