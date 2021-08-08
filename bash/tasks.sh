@@ -4,14 +4,45 @@
 ###############################################
 # Variables
 ###############################################
-
-time="$(date +"%Y-%m-%d")"
+global_task_log_file=
 # Don't change this password anytime
-task_password="fK2!aN1#aC4!aC2)hL1^"
+global_task_password="fK2!aN1#aC4!aC2)hL1^"
 
 ###############################################
 # Functions
 ###############################################
+
+function task_get_currenttime() {
+    return "$(date +"H%:%M:%S")"
+}
+
+function task_get_currentdate() {
+    return "$(date +"%Y_%m_%d")"
+}
+
+function task_initialize_logfile() {
+    task_log_folder=$1
+
+    if [[ ! -d ${task_log_folder} ]]; then
+        mkdir -p ${task_log_folder}
+    fi
+
+    task_get_currentdate
+    task_currentdate=$?
+    
+    global_task_log_file="${task_log_folder}/${task_currentdate}.log"
+}
+
+function task_log() {
+    task_message=$1
+
+    task_get_currenttime
+    task_timestamp=$?
+
+    if [[ -n "${global_task_log_file}" ]]; then
+        echo -e "[${task_timestamp}] => ${task_message}">>${global_task_log_file}
+    fi
+}
 
 function task_compress() {
     { 
@@ -19,7 +50,7 @@ function task_compress() {
         task_source_dir=$2
         task_package_name=${task_source_dir##*/}
         task_parent_source_dir=${task_source_dir%/*}
-        tar -zcPf - -C "${task_parent_source_dir}" "${task_package_name}" | openssl des3 -salt -k ${task_password} | split -b 4000m -d -a 1 - "${task_destination_dir}/${task_package_name}.tar.gz."
+        tar -zcPf - -C "${task_parent_source_dir}" "${task_package_name}" | openssl des3 -salt -k ${global_task_password} | split -b 4000m -d -a 1 - "${task_destination_dir}/${task_package_name}.tar.gz."
     } || {
         return 1
     }
@@ -32,7 +63,7 @@ function task_decompress() {
         task_destination_dir=$1
         task_source_dir=$2
         task_file_prefix=$3
-        cat ${task_source_dir}/${task_file_prefix}.* | openssl des3 -d -k ${task_password} -salt | tar -zxf - -C "${task_destination_dir}"
+        cat ${task_source_dir}/${task_file_prefix}.* | openssl des3 -d -k ${global_task_password} -salt | tar -zxf - -C "${task_destination_dir}"
     } || {
         return 1
     }

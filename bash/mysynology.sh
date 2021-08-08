@@ -3,27 +3,11 @@
 . ./jobs.sh
 
 ###############################################
-# Variables 
-###############################################
-
-
-
-###############################################
 # Functions
 ###############################################
 
 function usage() {
     echo
-}
-
-function backup() {
-    destination=$1
-    source=$2
-    job_backup ${destination} ${source} 
-}
-
-function recover() {
-    job_recover
 }
 
 function parse_arguments() {
@@ -49,6 +33,11 @@ function parse_arguments() {
                 ;;
             -r|--recovery)
                 kind="recovery"
+                shift
+                ;;
+            -l|--log_folder)
+                log_folder="$2"
+                shift
                 shift
                 ;;
             -d|--destination)
@@ -85,41 +74,23 @@ function validate_and_run() {
         exit -1
     fi
 
+    job_initialize ${log_folder}
+
     case ${kind} in
         backup)
-            if [[ -z ${destination} ]]; then
-                echo "--destination is missing, exit -1"
-                exit -1
-            fi
-
-            if [[ -z ${source} ]]; then
-                echo "--source is missing, exit -1"
-                exit -1
-            fi
-
             job_backup ${destination} ${source} 
             ;;
         recovery)
-            if [[ -z ${destination} ]]; then
-                echo "--destination is missing, exit -1"
-                exit -1
-            fi
-
-            if [[ -z ${source} ]]; then
-                echo "--source is missing, exit -1"
-                exit -1
-            fi
-
-            if [[ -z ${file_prefix} ]]; then
-                echo "--file prefix is missing, exit -1"
-                exit -1
-            fi
-
             job_recover ${destination} ${source} ${file_prefix}
             ;;
         *)
-            echo "type is missing, exit -1"
+            echo "unidentified kind."
     esac
+
+    if [[ $? -ne 0 ]]; then
+        echo "exit -1"
+        exit -1
+    fi
 }
 
 function start() {
@@ -128,26 +99,4 @@ function start() {
 }
 
 
-# start "$@"
-
-function test() {
-
-    list=()
-
-    path=/home/yuk4/work/sourcecode/github/bbcyyb/MySynology/test/b_side/temp
-
-    for sub in `ls ${path}`
-    do
-        list=("${list[@]}" "${sub%.*}")
-    done
-
-    for l in ${list[@]}
-    do
-        for ll in `ls "$path/$l"*`
-        do
-            echo $ll
-        done
-    done
-}
-
-test
+start "$@"
