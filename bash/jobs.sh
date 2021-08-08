@@ -17,6 +17,7 @@ function job_initialize() {
 function job_backup() {
     job_destination_dir=$1
     job_source_dir=$2
+    job_baiduyun_dir=$3
 
     if [[ -z ${job_destination_dir} ]]; then
         echo "--destination parameter is missing."
@@ -28,36 +29,42 @@ function job_backup() {
         return -1
     fi
 
-    if [[ ! -d "${job_source_dir}" ]]; then 
+    if [[ ! -d ${job_source_dir} ]]; then 
         echo "==> source folder ${job_source_dir} is not existed."
         return -1
     fi
 
-    if [[ ! -d "${job_destination_dir}" ]]; then 
+    if [[ ! -d ${job_destination_dir} ]]; then 
         echo "==> backup folder  ${job_destination_dir} is not existed, create it!"
         mkdir -p ${job_destination_dir}
     fi
+
+    if [[ -n ${job_baiduyun_dir} && ! -d ${job_baiduyun_dir} ]]; then
+        echo "==> baiduyun folder ${job_baiduyun_dir} is not existed."
+        return -1
+    fi
+
+    task_log "start to backup photos from ${job_source_dir} to ${job_baiduyun_dir}"
 
     for job_sub_folder in `ls "${job_source_dir}"`
     do
         if [[ ${job_sub_folder} != "@eaDir" ]]; then
             echo "compress ${job_sub_folder}......"
+            task_log "compress ${job_sub_folder} folder"
             task_compress "${job_destination_dir}" "${job_source_dir}/${job_sub_folder}"
             if [[ $? -ne 0 ]]; then
                 echo "${job_source_dir}/${job_sub_folder} failed to compress......"
                 break
             fi
-
-            # 验证，只有满足验证条件的压缩包能进入下一个环节
-            task_verify_compressed_volumes
-
-            # 移除不再需要的压缩卷
-            task_remove_compressed_volumes
-
-            #将指定文件的所有压缩卷拷贝到baiduyun同步文件夹中
-            task_move_compressed_volumes
+            
+            if [[ -n ${job_baiduyun_dir} ]]; then
+                task_log "sync ${job_sub_folder}.tar.gz to baiduyun"
+                task_sync_to_baiduyun "${job_baiduyun_dir}" "${job_destination_dir}" "${job_sub_folder}.tar.gz"
+            fi
         fi
     done
+
+    task_log "complete..."
 }
 
 function job_recover() {

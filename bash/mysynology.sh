@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 
 . ./jobs.sh
 
@@ -55,6 +55,11 @@ function parse_arguments() {
                 shift
                 shift
                 ;;
+            -y|--baiduyun)
+                baiduyun="$2"
+                shift
+                shift
+                ;;
             *)
                 POSITIONAL+=("$1")
                 shift
@@ -78,7 +83,7 @@ function validate_and_run() {
 
     case ${kind} in
         backup)
-            job_backup ${destination} ${source} 
+            job_backup ${destination} ${source} ${baiduyun}
             ;;
         recovery)
             job_recover ${destination} ${source} ${file_prefix}
