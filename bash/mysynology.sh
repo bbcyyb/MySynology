@@ -83,10 +83,10 @@ function validate_and_run() {
 
     case ${kind} in
         backup)
-            job_backup ${destination} ${source} ${baiduyun}
+            job_backup "${destination}" "${source}" "${baiduyun}"
             ;;
         recovery)
-            job_recover ${destination} ${source} ${file_prefix}
+            job_recover "${destination}" "${source}" "${file_prefix}"
             ;;
         *)
             echo "unidentified kind."
@@ -99,6 +99,8 @@ function validate_and_run() {
 }
 
 function start() {
+    echo $3
+
     parse_arguments "$@"
     validate_and_run
 }

@@ -19,27 +19,27 @@ function job_backup() {
     job_source_dir=$2
     job_baiduyun_dir=$3
 
-    if [[ -z ${job_destination_dir} ]]; then
+    if [[ -z "${job_destination_dir}" ]]; then
         echo "--destination parameter is missing."
         return -1
     fi
 
-    if [[ -z ${job_source_dir} ]]; then
+    if [[ -z "${job_source_dir}" ]]; then
         echo "--source parameter is missing."
         return -1
     fi
 
-    if [[ ! -d ${job_source_dir} ]]; then 
+    if [[ ! -d "${job_source_dir}" ]]; then 
         echo "==> source folder ${job_source_dir} is not existed."
         return -1
     fi
 
-    if [[ ! -d ${job_destination_dir} ]]; then 
-        echo "==> backup folder  ${job_destination_dir} is not existed, create it!"
-        mkdir -p ${job_destination_dir}
+    if [[ ! -d "${job_destination_dir}" ]]; then 
+        echo "==> backup folder ${job_destination_dir} is not existed, create it!"
+        mkdir -p "${job_destination_dir}"
     fi
 
-    if [[ -n ${job_baiduyun_dir} && ! -d ${job_baiduyun_dir} ]]; then
+    if [[ -n "${job_baiduyun_dir}" && ! -d "${job_baiduyun_dir}" ]]; then
         echo "==> baiduyun folder ${job_baiduyun_dir} is not existed."
         return -1
     fi
@@ -92,7 +92,7 @@ function job_recover() {
         return -1
     fi
 
-    ls ${job_source_dir}/${job_file_prefix}*
+    ls "${job_source_dir}/${job_file_prefix}"*
     if [[ $? -ne 0 ]]; then
         echo "==> file begin with ${job_file_prefix} is not existed."
         return -1
@@ -100,7 +100,7 @@ function job_recover() {
 
     if [[ ! -d "${job_destination_dir}" ]]; then
         echo "==> destination folder  ${job_destination_dir} is not exist, create it!"
-        mkdir -p ${job_destination_dir}
+        mkdir -p "${job_destination_dir}"
     fi
 
     echo "decomress ${job_file_prefix}"
