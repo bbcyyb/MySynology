@@ -105,6 +105,42 @@ function task_sync_to_baiduyun() {
     return 0
 }
 
+function task_refresh_record() {
+
+    task_accesskey_id=$1
+    task_accesskey_sec=$2
+
+    task_eth_interface="ovs_eth0"
+    task_domain_name="flashcool.fun"
+    task_domain_type="AAAA"
+    task_domain_recordid="00000"
+    task_dnsserver="dns29.hichina.com"
+    task_nslookup_drefix="AAAA address "
+
+    task_my_ipv6=$(ip addr show ${task_eth_interface} | grep "inet6.*global" | awk '{print $2}' | awk -F"/" '{print $1}' | tail -n 1)
+
+    task_current_ip=`nslookup -query="${task_domain_type}" "${task_domain_name}" "${task_dnsserver}" 2>&1`
+    task_domain_ip=`echo "${task_current_ip}" | grep "${task_nslookup_drefix}" | tail -n1 | awk '{print $NF}'`
+
+    _debug Current Domain IP: ${task_domain_ip}
+    _debug My IPv6: ${task_my_ipv6}
+
+    if [ -z "${task_my_ipv6}" ]; then
+        _err Could not get my ipv6
+        return 1
+    fi
+
+    if [ "${task_my_ipv6}" == "${task_domain_ip}" ]; then
+        _err Need not to update, current IP: ${task_my_ipv6}
+        return 1
+    fi
+
+    ######## put_params_public ########
+    # https://github.com/wudision0416/aliddns4dsm/blob/master/aliddns.sh
+    ###################################
+
+}
+
 ###############################################
 # Main Process
 ###############################################
