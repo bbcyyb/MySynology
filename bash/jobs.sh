@@ -107,6 +107,24 @@ function job_recover() {
     task_decompress "${job_destination_dir}" "${job_source_dir}" "${job_file_prefix}"
 }
 
+function job_aliddns() {
+    job_accesskey_id=$1
+    job_accesskey_sec=$2
+
+
+    if [[ -z ${job_accesskey_id} ]]; then
+        echo "--accesskey_id is missing."
+        return -1
+    fi
+
+    if [[ -z ${job_accesskey_sec} ]]; then
+        echo "--accesskey_sec is missing."
+        return -1
+    fi
+
+    task_refresh_record "${job_accesskey_id}" "${job_accesskey_sec}"
+}
+
 ###############################################
 # Main Process
 ###############################################
