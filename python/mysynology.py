@@ -22,7 +22,7 @@ def run(config):
     if mode == "0":
         backup(destination, source, baiduyun)
     elif mode == "1":
-        recover(destination, source, file_prefix)
+        recover(source, baiduyun, file_prefix)
     else:
         print("Unknown mode. Please check the configuration file.")
         sys.exit(-1)
