@@ -18,13 +18,16 @@ def initialize_logfile(log_folder):
 
 def log(message):
     timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+    full_message = f"[{timestamp}] => {message}"
+    print(full_message)
 
     if global_log_file:
         with open(global_log_file, "a") as file:
-            file.write(f"[{timestamp}] => {message}\n")
+            file.write(f"{full_message}\n")
 
 
 def compress(destination_dir, source_dir):
+    log(f"start compressing {source_dir}......")
     package_name = os.path.basename(source_dir.rstrip('/'))
     parent_source_dir = os.path.dirname(source_dir)
     try:
@@ -33,7 +36,7 @@ def compress(destination_dir, source_dir):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True,
-            text=True
+            text=False
         )
         openssl_process = subprocess.run(
             ["openssl", "des3", "-salt", "-k", global_password],
@@ -41,7 +44,7 @@ def compress(destination_dir, source_dir):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True,
-            text=True
+            text=False
         )
         split_process = subprocess.run(
             [
@@ -53,22 +56,24 @@ def compress(destination_dir, source_dir):
             input=openssl_process.stdout,
             stderr=subprocess.PIPE,
             check=True,
-            text=True
+            text=False
         )
+        log(f"complete compressing {source_dir}......")
         return 0
     except subprocess.CalledProcessError as e:
-        print(e)
+        log(e)
         return 1
 
 
 def decompress(destination_dir, source_dir, file_prefix):
     try:
+        log(f"start to decompress {file_prefix} to {destination_dir}......")
         cat_process = subprocess.run(
             ["cat", f"{source_dir}/{file_prefix}.*"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True,
-            text=True
+            text=False
         )
         openssl_process = subprocess.run(
             ["openssl", "des3", "-d", "-k", global_password, "-salt"],
@@ -76,23 +81,24 @@ def decompress(destination_dir, source_dir, file_prefix):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True,
-            text=True
+            text=False
         )
         tar_process = subprocess.run(
             ["tar", "-zxf", "-", "-C", destination_dir],
             input=openssl_process.stdout,
             stderr=subprocess.PIPE,
             check=True,
-            text=True
+            text=False
         )
         return 0
     except subprocess.CalledProcessError as e:
-        print(e)
+        log(e)
         return 1
 
 
 def sync_to_baiduyun(destination_dir, source_dir, file_prefix):
     try:
+        log(f"start to sync {file_prefix} to baiduyun")
         need_copy = -1
         if not file_prefix:
             return 1
@@ -122,7 +128,8 @@ def sync_to_baiduyun(destination_dir, source_dir, file_prefix):
                 if src_file.startswith(file_prefix):
                     os.remove(os.path.join(source_dir, src_file))
 
+        log(f"complete to sync {file_prefix} to baiduyun")
         return 0
     except Exception as e:
-        print(e)
+        log(e)
         return 1
